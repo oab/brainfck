@@ -39,9 +39,20 @@ section .data
 bfdata: times SIZE db 0
 
 section .bss
-
 codebuffer: resb SIZE
 
+section .rodata
+
+jmptable:  
+  dd incv
+  dd decv
+  dd incp
+  dd decp
+  dd outv
+  dd inv
+  dd lpb
+  dd lpe 
+  dd end 
 
 
 section .text
@@ -53,32 +64,43 @@ section .text
 
 evalbf:
   mov ecx,codebuffer ; init. instruction pointer
-  mov ebx,bfdata
-  jmp fetcheval
+  mov ebx,bfdata     ; init. data pointer
+  jmp fetcheval      ; start interpreter
   
 fetcheval:
-  mov byte eax,[ecx]
+  movzx eax,byte [ecx]
   inc ecx
   jmp [jmptable+eax]
   jmp fetcheval
  
 incv:
-    
+  mov al,[ebx]
+  inc al
+  mov [ebx],al
   jmp fetcheval
 
 decv:
+  mov al,[ebx]
+  dec al
+  mov al,[ebx]
   jmp fetcheval
 
 incp:
+  inc ebx
   jmp fetcheval
 
-decv:
+decp:
+  dec ebx
   jmp fetcheval
 
 outv:
+  movzx eax,byte [ebx]
+  call putchar
   jmp fetcheval
 
 inv:
+  call getchar
+  mov [ebx],al
   jmp fetcheval
 
 lpb:
@@ -89,20 +111,4 @@ lpe:
 
 end:
   ret  
-
-jumptable:  
-  dw incv
-  dw decv
-  dw incp
-  dw decv
-  dw outv
-  dw inv
-  dw lpb
-  dw lpe 
-  dw end 
-
-
-
-
-
 

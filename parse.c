@@ -7,20 +7,20 @@ void evalbf(void);
 int main(int argc, char* argv[]) 
 {
 
-  if(argc != 1)	{
-    fprintf(stderr,"expected input file");
+  if(argc != 2)	{
+    fprintf(stderr,"expected input file\n");
     exit(EXIT_FAILURE);
   }
   
-  FILE *file = fopen(argv[0],"r");
+  FILE *file = fopen(argv[1],"r");
   if(file) {
-    fprintf(stderr,"failed to open file");
+    fprintf(stderr,"failed to open file %s\n",argv[1]);
     exit(EXIT_FAILURE);
   }
 
   int c;
   int read=0;
-  while(c = fgetc(file) != EOF && read < SIZE-1) {	  
+  while((c = fgetc(file)) != EOF && read < SIZE-1) {	  
     switch(c) {
       case '>': codebuffer[read++]=0; break;
       case '<': codebuffer[read++]=1; break;
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   }
 
   if (SIZE < read) {
-    fprintf(stderr,"program rejected; too big");
+    fprintf(stderr,"program rejected; too big\n");
     exit(EXIT_FAILURE);
   }
 

@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define SIZE 256
+extern char codebuffer[SIZE];
+void evalbf(void);
+int main(int argc, char* argv[]) 
+{
+
+  if(argc != 1)	{
+    fprintf(stderr,"expected input file");
+    exit(EXIT_FAILURE);
+  }
+  
+  FILE *file = fopen(argv[0],"r");
+  if(file) {
+    fprintf(stderr,"failed to open file");
+    exit(EXIT_FAILURE);
+  }
+
+  int c;
+  int read=0;
+  while(c = fgetc(file) != EOF && read < SIZE-1) {	  
+    switch(c) {
+      case '>': codebuffer[read++]=0; break;
+      case '<': codebuffer[read++]=1; break;
+      case '+': codebuffer[read++]=2; break;
+      case '-': codebuffer[read++]=3; break;
+      case '.': codebuffer[read++]=4; break;
+      case ',': codebuffer[read++]=5; break;
+      case '[': codebuffer[read++]=6; break;
+      case ']': codebuffer[read++]=7; break;
+      default: break;
+    }
+  }
+
+  if (SIZE < read) {
+    fprintf(stderr,"program rejected; too big");
+    exit(EXIT_FAILURE);
+  }
+
+  fclose(file);
+
+  evalbf();
+
+  return EXIT_SUCCESS;
+}

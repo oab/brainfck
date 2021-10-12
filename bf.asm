@@ -87,27 +87,32 @@ decp:
 
 outv:
   movzx eax,byte [ebx]
-
+  push ebx
+  push ecx      
   push ebp
   mov ebp, esp
   push eax      
   call putchar
   add esp,4
   mov esp,ebp
-  pop ebp      
+  pop ebp
+  pop ecx
+  pop ebx      
 
   jmp fetcheval
 
 inv:
-  push ebp
-  mov ebp, esp
-      
-  call getchar
+  push ebx
+  push ecx
         
+  push ebp
+  mov ebp, esp     
+  call getchar        
   mov [ebx],al
   mov esp,ebp
-  pop ebp      
-
+  pop ebp 
+  pop ecx
+  pop ebx
   jmp fetcheval
 
 lpb:

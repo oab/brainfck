@@ -17,8 +17,9 @@
 ;                THEN jump backwards to the instruction after the matching [
 ;                ELSE next instruction
 
-SIZE: equ 256
-
+SLOTS: equ 128
+MAXCODESIZE: equ 256
+        
 global main
 global codebuffer
 global evalbf
@@ -26,10 +27,10 @@ extern putchar
 extern getchar
 
 section .data
-bfdata: times SIZE db 0
+bfdata: times SLOTS db 0
 
 section .bss
-codebuffer: resb SIZE
+codebuffer: resb MAXCODESIZE
 
 section .rodata
 
@@ -48,16 +49,18 @@ jmptable:
 section .text
 
 ; the brainf*ck machine
-; keep the data pointer    in  eax
-; keep instruction pointer in  ecx
+; keep the data pointer    (DP) in  ebx
+; keep instruction pointer (IP) in  ecx
+; use the x86 stack as stack (for [ and ] instruction)
+ 
 
 
 evalbf:
   push ebp
   mov ebp, esp      
-  mov ecx,codebuffer ; init. instruction pointer
-  mov ebx,bfdata     ; init. data pointer
-  jmp fetcheval      ; start interpreter
+  mov ecx,codebuffer ; init. IP
+  mov ebx,bfdata     ; init. DP      
+  jmp fetcheval      ; start interpreter loop
   
 fetcheval:
   movzx eax,byte [ecx]
@@ -116,6 +119,11 @@ inv:
   jmp fetcheval
 
 lpb:
+  mov al,[ebx]
+  cmp al,0
+  jnz .zero
+  
+.zero:        
   jmp fetcheval
 
 lpe:

@@ -2,10 +2,23 @@
 #include <stdlib.h>
 
 #define SIZE 256
+
+#define INCP 0
+#define DECP 1
+#define INCV 2
+#define DECV 3
+#define OUTV 4
+#define INV 5
+#define LPB 6
+#define LPE 7
+#define END 8
+
 extern char codebuffer[SIZE];
 void evalbf(void);
 int main(int argc, char* argv[]) 
 {
+  char bracketstack[SIZE];
+  int top=0;
 
   if(argc != 2)	{
     fprintf(stderr,"expected input file\n");
@@ -21,29 +34,40 @@ int main(int argc, char* argv[])
 
   int c;
   int read=0;
-  while((c = fgetc(file)) != EOF && read < SIZE-1) {	  
+  while((c = fgetc(file)) != EOF) {
+    if (read == SIZE-1) {
+      fprintf(stderr,"program rejected; too big\n");
+      exit(EXIT_FAILURE);
+    }
+
     switch(c) {
-      case '>': codebuffer[read++]=0; break;
-      case '<': codebuffer[read++]=1; break;
-      case '+': codebuffer[read++]=2; break;
-      case '-': codebuffer[read++]=3; break;
-      case '.': codebuffer[read++]=4; break;
-      case ',': codebuffer[read++]=5; break;
-      case '[': codebuffer[read++]=6; break;
-      case ']': codebuffer[read++]=7; break;
+      case '>': codebuffer[read++]=INCP; break;
+      case '<': codebuffer[read++]=DECP; break;
+      case '+': codebuffer[read++]=INCV; break;
+      case '-': codebuffer[read++]=DECV; break;
+      case '.': codebuffer[read++]=OUTV; break;
+      case ',': codebuffer[read++]=INV; break;
+      case '[': codebuffer[read++]=LPB;
+        bracketstack[top++] = '[';
+        break;
+      case ']': codebuffer[read++]=LPE;
+        if (bracketstack[top] == '[') {
+          top--;
+        }
+        break;
       default: break;
     }
   }
+  if(!top) {
+    fprintf(stderr,"program rejected; unbalanced brackets\n");
+    exit(EXIT_FAILURE);
+  }
   // insert end of program marker
-  codebuffer[read++] = 8;
+  codebuffer[read++] = END;
   //for(int i=0;i<read;i++) printf("%d",codebuffer[i]);
   //printf("\n");
   //exit(0);
 
-  if (SIZE < read) {
-    fprintf(stderr,"program rejected; too big\n");
-    exit(EXIT_FAILURE);
-  }
 
   fclose(file);
 

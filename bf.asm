@@ -19,16 +19,6 @@
 
 SIZE: equ 256
 
-OP_INCP: equ 0
-OP_DECP: equ 1
-OP_INCV: equ 2
-OP_DECV: equ 3
-OP_OUTV: equ 4
-OP_INV: equ 5
-OP_LPB: equ 6
-OP_LPE: equ 7
-OP_END: equ 8
-
 global main
 global codebuffer
 global evalbf
@@ -44,25 +34,27 @@ codebuffer: resb SIZE
 section .rodata
 
 jmptable:  
-  dd incv
-  dd decv
-  dd incp
-  dd decp
-  dd outv
-  dd inv
-  dd lpb
-  dd lpe 
-  dd end 
+  dd incp                       ; 0 >
+  dd decp                       ; 1 <
+  dd incv                       ; 2 +
+  dd decv                       ; 3 -
+  dd outv                       ; 4 .
+  dd inv                        ; 5 ,
+  dd lpb                        ; 6 [
+  dd lpe                        ; 7 ]
+  dd end                        ; 8 end
 
 
 section .text
 
 ; the brainf*ck machine
-; keep the data pointer    in  ebx
+; keep the data pointer    in  eax
 ; keep instruction pointer in  ecx
 
 
 evalbf:
+  push ebp
+  mov ebp, esp      
   mov ecx,codebuffer ; init. instruction pointer
   mov ebx,bfdata     ; init. data pointer
   jmp fetcheval      ; start interpreter
@@ -70,7 +62,7 @@ evalbf:
 fetcheval:
   movzx eax,byte [ecx]
   inc ecx
-  jmp [jmptable+eax]
+  jmp [jmptable+(4)*eax]            
   jmp fetcheval
  
 incv:
@@ -95,12 +87,27 @@ decp:
 
 outv:
   movzx eax,byte [ebx]
+
+  push ebp
+  mov ebp, esp
+  push eax      
   call putchar
+  add esp,4
+  mov esp,ebp
+  pop ebp      
+
   jmp fetcheval
 
 inv:
+  push ebp
+  mov ebp, esp
+      
   call getchar
+        
   mov [ebx],al
+  mov esp,ebp
+  pop ebp      
+
   jmp fetcheval
 
 lpb:
@@ -110,5 +117,6 @@ lpe:
   jmp fetcheval
 
 end:
+  pop ebp      
   ret  
 

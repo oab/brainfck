@@ -13,10 +13,11 @@ int main(int argc, char* argv[])
   }
   
   FILE *file = fopen(argv[1],"r");
-  if(file) {
+  if(!file) {
     fprintf(stderr,"failed to open file %s\n",argv[1]);
     exit(EXIT_FAILURE);
   }
+  
 
   int c;
   int read=0;
@@ -33,6 +34,11 @@ int main(int argc, char* argv[])
       default: break;
     }
   }
+  // insert end of program marker
+  codebuffer[read++] = 8;
+  //for(int i=0;i<read;i++) printf("%d",codebuffer[i]);
+  //printf("\n");
+  //exit(0);
 
   if (SIZE < read) {
     fprintf(stderr,"program rejected; too big\n");

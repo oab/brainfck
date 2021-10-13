@@ -52,8 +52,6 @@ section .text
 ; the brainf*ck machine
 ; keep the data pointer      (DP) in  ebx
 ; keep instruction pointer   (IP) in  ecx
- 
-
 
 evalbf:
   push ebp
@@ -92,7 +90,6 @@ outv:
   movzx eax,byte [ebx]
   push ebx
   push ecx
-  push edx      
   push ebp
   mov ebp, esp
   push eax      
@@ -102,14 +99,11 @@ outv:
   pop ebp
   pop ecx
   pop ebx
-  pop edx     
-
   jmp fetcheval
 
 inv:
   push ebx
   push ecx
-  push edx        
   push ebp
   mov ebp, esp     
   call getchar        
@@ -118,19 +112,26 @@ inv:
   pop ebp 
   pop ecx
   pop ebx
-  pop edx
   jmp fetcheval
 
 lpb:
-  mov al,[ebx]
-  cmp al,0
-  jnz .zero
-  mov eax, [+edx]
-.zero:        
+  movzx eax,byte [ebx]
+  cmp eax,0
+  jnz .nzero
+  movzx eax,byte [ecx+1] ; fetch displacement
+  add ecx,eax            ; relative forward jump
+.nzero:          
   jmp fetcheval
 
 lpe:
+  movzx eax,byte [ebx]
+  cmp eax,0
+  jnz .nzero
+  movzx eax,byte [ecx+1] ; fetch displacement
+  sub ecx,eax            ; relative backward jump
+.nzero:          
   jmp fetcheval
+
 
 end:
   pop ebp      

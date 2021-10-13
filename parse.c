@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define MAX_CODESIZE 256
 #define MAX_BRACKETS 128
@@ -25,21 +27,27 @@ struct bracket {
 
 int main(int argc, char* argv[]) 
 {
+  if(argc < 2)	{
+    fprintf(stderr,"expected one or more arguments\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // flags 
+  bool show_and_exit=false;    	
+  // set flags	
+  for(int arg=1;arg<argc-1;arg++) {
+    if(strcmp(argv[arg],"-s") == 0 ) show_and_exit=true;
+  }	  
+ 
+  
+  FILE *file = fopen(argv[argc-1],"r");
+  if(!file) {
+    fprintf(stderr,"failed to open file %s\n",argv[argc-1]);
+    exit(EXIT_FAILURE);
+  }
+  
   struct bracket bracketstack[MAX_CODESIZE];
   int top=-1;
-
-  if(argc != 2)	{
-    fprintf(stderr,"expected input file\n");
-    exit(EXIT_FAILURE);
-  }
-  
-  FILE *file = fopen(argv[1],"r");
-  if(!file) {
-    fprintf(stderr,"failed to open file %s\n",argv[1]);
-    exit(EXIT_FAILURE);
-  }
-  
-
   int c;
   int read=0;
   while((c = fgetc(file)) != EOF) {
@@ -67,50 +75,51 @@ int main(int argc, char* argv[])
           // i=m+2 and j=k+2
           // st. if we are at m then m+a = k+2 and if we are at k then k-a = m+2
           int displacement = read - bracketstack[top].read;
-          codebuffer[bracketstack[top].read+1] = displacement+2;
-          codebuffer[read+1]= displacement-2;
-          printf("displacement: %d ",displacement);
+          codebuffer[bracketstack[top].read+1] = (char)displacement+2;
+          codebuffer[read+1]= (char)displacement-2;
           --top;          
-        }
-        read+=2;
-        
+        } 
+	read+=2;
         break;
       default: break;
     }
   }
+  fclose(file);
+  
+  // insert end of program marker
+  codebuffer[read++] = END;
  
   if(top != -1) {
     fprintf(stderr,"program rejected; unbalanced brackets\n");
     exit(EXIT_FAILURE);
   }
-  // insert end of program marker
-  codebuffer[read++] = END;
-  printf("read:%d\n",read);
-  for(int i=0;i<read;i++) {
-    char out;
-    int l=0;
-    switch(codebuffer[i]) {
-      case 0: out = '>';break;
-      case 1: out = '<';break;
-      case 2: out = '+';break;
-      case 3: out = '-';break;
-      case 4: out = '.';break;
-      case 5: out = ',';break;
-      case 6: out = '[';l=1;break;
-      case 7: out = ']';l=1;break;
-      case 8: out = 'E';break;
+  
+  if(show_and_exit) {
+    for(int i=0;i<read;i++) {
+      char out;
+      int l=0;
+      switch(codebuffer[i]) {
+        case 0: out = '>';break;
+        case 1: out = '<';break;
+        case 2: out = '+';break;
+        case 3: out = '-';break;
+        case 4: out = '.';break;
+        case 5: out = ',';break;
+        case 6: out = '[';l=1;break;
+        case 7: out = ']';l=1;break;
+        case 8: out = 'E';break;
+        default: out='?';break;      
+      }
+      if(l!=1) { 
+        printf("%c",out);
+      } else {
+        printf("%c(%d)",out,codebuffer[++i]);
+      }
     }
-    if(!l) { 
-      printf("%c ",out);
-    } else {
-      printf("%c%d",out,codebuffer[++i]);
-    }
+    printf("\n"); 
+    exit(EXIT_SUCCESS);
   }
-  printf("\n");
-  exit(0);
 
-
-  fclose(file);
 
   evalbf();
 

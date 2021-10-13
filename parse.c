@@ -60,16 +60,17 @@ int main(int argc, char* argv[])
         read+=2;
         break;
       case ']': codebuffer[read]=LPE;
-        if (0 <= top && bracketstack[top].bracket == '[') {
+        if (top != -1 && bracketstack[top].bracket == '[') {
           // store the jump locations in the byte next to the brackets 
           // we store jump locations as relative displacements st. if ... m  ...  k ....
-          // we want, given i@m+2 and j@k+2                               [ai     ]bj
-          // to set a=k-m+2 and b=k-m+2
+          // then k-(k-m) = m  and m+(k-m)=k  and we can compute          [ai     ]bj
+          // i=m+2 and j=k+2
           // st. if we are at m then m+a = k+2 and if we are at k then k-a = m+2
-          int displacement = read- bracketstack[top].read+2;
-          codebuffer[bracketstack[top].read+1] = displacement;
-          codebuffer[read+1]= displacement;
-          top--;
+          int displacement = read - bracketstack[top].read;
+          codebuffer[bracketstack[top].read+1] = displacement+2;
+          codebuffer[read+1]= displacement-2;
+          printf("displacement: %d ",displacement);
+          --top;          
         }
         read+=2;
         
@@ -78,13 +79,14 @@ int main(int argc, char* argv[])
     }
   }
  
-  if(0 <= top) {
+  if(top != -1) {
     fprintf(stderr,"program rejected; unbalanced brackets\n");
     exit(EXIT_FAILURE);
   }
   // insert end of program marker
   codebuffer[read++] = END;
-  for(int i=0;i<=read;i++) {
+  printf("read:%d\n",read);
+  for(int i=0;i<read;i++) {
     char out;
     int l=0;
     switch(codebuffer[i]) {
@@ -101,7 +103,7 @@ int main(int argc, char* argv[])
     if(!l) { 
       printf("%c ",out);
     } else {
-      printf("%c%d",out,codebuffer[i++]);
+      printf("%c%d",out,codebuffer[++i]);
     }
   }
   printf("\n");

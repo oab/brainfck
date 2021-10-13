@@ -18,7 +18,8 @@
 ;                ELSE next instruction
 
 SLOTS: equ 128
-MAXCODESIZE: equ 256
+MAX_CODESIZE: equ 256
+MAX_BRACKETS: equ 128
         
 global main
 global codebuffer
@@ -30,7 +31,7 @@ section .data
 bfdata: times SLOTS db 0
 
 section .bss
-codebuffer: resb MAXCODESIZE
+codebuffer: resb MAX_CODESIZE
 
 section .rodata
 
@@ -49,18 +50,17 @@ jmptable:
 section .text
 
 ; the brainf*ck machine
-; keep the data pointer    (DP) in  ebx
-; keep instruction pointer (IP) in  ecx
-; use the x86 stack as stack (for [ and ] instruction)
+; keep the data pointer      (DP) in  ebx
+; keep instruction pointer   (IP) in  ecx
  
 
 
 evalbf:
   push ebp
   mov ebp, esp      
-  mov ecx,codebuffer ; init. IP
-  mov ebx,bfdata     ; init. DP      
-  jmp fetcheval      ; start interpreter loop
+  mov ecx,codebuffer     ; init. IP
+  mov ebx,bfdata         ; init. DP
+  jmp fetcheval          ; start interpreter loop
   
 fetcheval:
   movzx eax,byte [ecx]
@@ -91,7 +91,8 @@ decp:
 outv:
   movzx eax,byte [ebx]
   push ebx
-  push ecx      
+  push ecx
+  push edx      
   push ebp
   mov ebp, esp
   push eax      
@@ -100,14 +101,15 @@ outv:
   mov esp,ebp
   pop ebp
   pop ecx
-  pop ebx      
+  pop ebx
+  pop edx     
 
   jmp fetcheval
 
 inv:
   push ebx
   push ecx
-        
+  push edx        
   push ebp
   mov ebp, esp     
   call getchar        
@@ -116,13 +118,14 @@ inv:
   pop ebp 
   pop ecx
   pop ebx
+  pop edx
   jmp fetcheval
 
 lpb:
   mov al,[ebx]
   cmp al,0
   jnz .zero
-  
+  mov eax, [+edx]
 .zero:        
   jmp fetcheval
 

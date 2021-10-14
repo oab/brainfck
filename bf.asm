@@ -56,26 +56,26 @@ section .text
 evalbf:
   push ebp
   mov ebp, esp      
-  mov ecx,codebuffer     ; init. IP
-  mov ebx,bfdata         ; init. DP
-  jmp fetcheval          ; start interpreter loop
+  mov ecx,0           ; init. IP
+  mov ebx,0           ; init. DP
+  jmp fetcheval       ; start interpreter loop
   
 fetcheval:
-  movzx eax,byte [ecx]
+  movzx eax,byte [codebuffer+ecx]
   inc ecx
   jmp [jmptable+(4)*eax]            
   jmp fetcheval
  
 incv:
-  mov al,[ebx]
-  inc al
-  mov [ebx],al
+  movzx eax,byte [bfdata+ebx]
+  inc eax
+  mov [bfdata+ebx],al
   jmp fetcheval
 
 decv:
-  mov al,[ebx]
-  dec al
-  mov al,[ebx]
+  movzx eax,byte [bfdata+ebx]
+  dec eax
+  mov [bfdata+ebx],al
   jmp fetcheval
 
 incp:
@@ -87,7 +87,7 @@ decp:
   jmp fetcheval
 
 outv:
-  movzx eax,byte [ebx]
+  movzx eax,byte [bfdata+ebx]
   push ebx
   push ecx
   push ebp
@@ -107,7 +107,7 @@ inv:
   push ebp
   mov ebp, esp     
   call getchar        
-  mov [ebx],al
+  mov [bfdata+ebx],al
   mov esp,ebp
   pop ebp 
   pop ecx
@@ -115,21 +115,27 @@ inv:
   jmp fetcheval
 
 lpb:
-  movzx eax,byte [ebx]
+  movzx eax,byte [bfdata+ebx]
   cmp eax,0
   jnz .nzero
-  movzx eax,byte [ecx+1] ; fetch displacement
-  add ecx,eax            ; relative forward jump
-.nzero:          
+  movzx eax,byte [codebuffer+ecx]   ; fetch displacement
+  sub ecx,1                         ; adjust to [
+  add ecx,eax                       ; relative forward jump when DP is zero
+  jmp fetcheval
+.nzero:
+  add ecx,1                         ; skip displacement byte          
   jmp fetcheval
 
 lpe:
-  movzx eax,byte [ebx]
+  movzx eax,byte [bfdata+ebx]
   cmp eax,0
-  jnz .nzero
-  movzx eax,byte [ecx+1] ; fetch displacement
-  sub ecx,eax            ; relative backward jump
-.nzero:          
+  jz .zero
+  movzx eax,byte [codebuffer+ecx]   ; fetch displacement
+  sub ecx,1                         ; adjust to ]
+  sub ecx,eax                       ; relative backward jump when DP is nonzero
+  jmp fetcheval
+.zero:
+  add ecx,1                         ; skip displacement byte          
   jmp fetcheval
 
 

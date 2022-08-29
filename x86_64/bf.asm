@@ -54,9 +54,7 @@ section .text
 ; keep the data pointer      (DP) in  rbx
 ; keep instruction pointer   (IP) in  rcx
 
-_evalbf:
-  push rbp
-  mov rbp, rsp      
+_evalbf:    
   mov rcx,0           ; init. IP
   mov rbx,0           ; init. DP
   jmp fetcheval       ; start interpreter loop
@@ -94,16 +92,10 @@ decp:
 
 outv:
   lea rdx, [bfdata]	
-  movzx rax,byte [rdx+rbx]
+  movzx rdi,byte [rdx+rbx]
   push rbx
   push rcx
-  push rbp
-  mov rbp, rsp
-  push rax      
   call _putchar
-  add rsp,4
-  mov rsp,rbp
-  pop rbp
   pop rcx
   pop rbx
   jmp fetcheval
@@ -111,13 +103,9 @@ outv:
 inv:
   push rbx
   push rcx
-  push rbp
-  mov rbp, rsp
   call _getchar
   lea rdx, [bfdata]
   mov [rdx+rbx],rax
-  mov rsp,rbp
-  pop rbp 
   pop rcx
   pop rbx
   jmp fetcheval
@@ -150,8 +138,6 @@ lpe:
   add rcx,1                         ; skip displacement byte          
   jmp fetcheval
 
-
 end:
-  pop rbp      
   ret
 

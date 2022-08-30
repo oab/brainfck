@@ -22,7 +22,7 @@ SLOTS: equ 128
 MAX_CODESIZE: equ 256
 MAX_BRACKETS: equ 128
         
-extern _main
+
 global _codebuffer
 global _evalbf
 	
@@ -54,7 +54,8 @@ section .text
 ; keep the data pointer      (DP) in  rbx
 ; keep instruction pointer   (IP) in  rcx
 
-_evalbf:    
+_evalbf:
+  push rbx	
   mov rcx,0           ; init. IP
   mov rbx,0           ; init. DP
   jmp fetcheval       ; start interpreter loop
@@ -95,7 +96,12 @@ outv:
   movzx rdi,byte [rdx+rbx]
   push rbx
   push rcx
+  push rbp
+  mov rbp,rsp
+  sub rsp,8		
   call _putchar
+  add rsp,8 	
+  pop rbp	
   pop rcx
   pop rbx
   jmp fetcheval
@@ -103,11 +109,16 @@ outv:
 inv:
   push rbx
   push rcx
+  push rbp	
+  mov rbp,rsp
+  sub rsp,8
   call _getchar
-  lea rdx, [bfdata]
-  mov [rdx+rbx],rax
+  add rsp,8	
+  pop rbp
   pop rcx
   pop rbx
+  lea rdx, [bfdata]
+  mov [rdx+rbx],rax
   jmp fetcheval
 
 lpb:
@@ -139,5 +150,6 @@ lpe:
   jmp fetcheval
 
 end:
+  pop rbx
   ret
 
